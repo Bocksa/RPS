@@ -10,15 +10,15 @@ class RPSGame_AI:
     Player_Wins = 0
     Ties = 0
     Rounds = 0
-    Win_Condition = 4
+    Win_Condition = 1
 
     moves = ["rock", "paper", "scissors"]
 
     Score = 0
 
     def __init__(self):
-        self.PlayerLastMove = 0
-        self.AILastMove = 0
+        self.PlayerLastMove = None
+        self.AILastMove = None
     
     def play_step(self, action):
         return self._play_round(self._getPlayerMove(strategy=1), action)
@@ -43,7 +43,7 @@ class RPSGame_AI:
     def _getPlayerMove(self, strategy):
 
         if strategy == 1:
-            if self.Rounds == 0:
+            if self.AILastMove == None:
                 return 2
             
             if self.AILastMove == 0:
@@ -54,8 +54,8 @@ class RPSGame_AI:
                 return 1
         
     def reset(self):
-        self.PlayerLastMove = 0
-        self.AILastMove = 0
+        self.PlayerLastMove = None
+        self.AILastMove = None
         self.AI_Wins = 0
         self.Player_Wins = 0
         self.Rounds = 0

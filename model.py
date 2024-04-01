@@ -49,9 +49,10 @@ class QTrainer:
 
         for i in range(len(done) - 1):
             Q_new = reward[i]
+            
             if not done[i]:
                 Q_new = reward[i] + self.gamma * torch.max(self.model(next_state[i]))
-
+            
             targmax = torch.argmax(action).item()
             target[i][targmax] = Q_new
         

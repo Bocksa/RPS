@@ -23,8 +23,8 @@ class Agent:
 
     def get_state(self, game=RPSGame_AI):
         state = [
-            game.AILastMove,
-            game.PlayerLastMove
+            game.AILastMove or 0,
+            game.PlayerLastMove or 0
         ]
         return np.array(state, dtype=int)
 
@@ -67,20 +67,15 @@ def train():
     agent = Agent()
     game = RPSGame_AI()
     while True:
-        # get old state
         state_old = agent.get_state(game)
 
-        # get move
         final_move = agent.get_action(state_old)
 
-        #perform move and get new state
         reward, done, score = game.play_step(final_move)
         state_new = agent.get_state(game)
 
-        # train short memory
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
 
-        # remember
         agent.remember(state_old, final_move, reward, state_new, done)
 
         if done:
