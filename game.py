@@ -10,7 +10,7 @@ class RPSGame_AI:
     Player_Wins = 0
     Ties = 0
     Rounds = 0
-    Win_Condition = 1
+    Win_Condition = 4
 
     moves = ["rock", "paper", "scissors"]
 
