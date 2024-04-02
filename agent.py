@@ -69,6 +69,8 @@ def train():
     record = 0
     agent = Agent()
     game = RPSGame_AI()
+    print("Choose a strategy 1-4: ")
+    game.strategy = int(input())
     while True:
         state_old = agent.get_state(game)
 
