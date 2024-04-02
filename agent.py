@@ -1,4 +1,5 @@
 import torch
+import time
 from game import RPSGame_AI
 from collections import deque
 import numpy as np
@@ -6,9 +7,11 @@ import random
 from model import Linear_QNet, QTrainer
 from helper import plot
 
-MAX_MEMORY = 100
+MAX_MEMORY = 100_000
 BATCH_SIZE = 1
 LR = 0.001
+
+START_TIME = time.time()
 
 class Agent:
 
@@ -17,7 +20,7 @@ class Agent:
         self.epsilon = 0 # Randomness
         self.gamma = 0.9 # Discount rate 0 < x < 1
         self.memory = deque(maxlen = MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(2, 256, 3)
+        self.model = Linear_QNet(2, 256, 3).cuda()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -51,7 +54,7 @@ class Agent:
             move = random.randint(0,2)
             final_move = move
         else:
-            state0 = torch.tensor(state, dtype=torch.float)
+            state0 = torch.tensor(state, dtype=torch.float).cuda()
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move = move
@@ -80,6 +83,10 @@ def train():
 
         if done:
             # train long memory
+            if (game.AI_Wins == 0 and game.Player_Wins == 0):
+                print(f"Agent Wins: {game.AI_Wins} | Player Wins: {game.Player_Wins} | Ties: {game.Ties} | Win Percentage: Mysterious fucking edge case where it managed to tie {game.Tie_Condition} games in a row with no wins. | Player Strategy: {game.strategy}")
+            else:
+                print(f"Agent Wins: {game.AI_Wins} | Player Wins: {game.Player_Wins} | Ties: {game.Ties} | Win Percentage: {(game.AI_Wins / (game.AI_Wins + game.Player_Wins)) * 100} | Player Strategy: {game.strategy}")
             game.reset()
             agent.n_games = agent.n_games + 1
             agent.train_long_memory()
@@ -88,15 +95,14 @@ def train():
                 record = score
                 agent.model.save()
 
-            print(f"Game: {agent.n_games} Score: {score} Record: {record}")
+            print(f"Match: {agent.n_games} Score: {score} Record: {record}")
 
             plot_scores.append(score)
             total_score = total_score + score
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
 
-            plot(plot_scores, plot_mean_scores)
+            plot(plot_scores, plot_mean_scores, START_TIME)
             
-
 if __name__ == '__main__':
     train()
