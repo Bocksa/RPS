@@ -47,13 +47,16 @@ class QTrainer:
         pred = self.model(state)
         target = pred.clone()
 
-        for i in range(len(done) - 1):
+        for i in range(len(done)):
             Q_new = reward[i]
             
             if not done[i]:
                 Q_new = reward[i] + self.gamma * torch.max(self.model(next_state[i]))
             
+            targ = action
             targmax = torch.argmax(action).item()
+            targi = target[i]
+            target_shape = target.shape
             target[i][targmax] = Q_new
         
         self.optimiser.zero_grad()
