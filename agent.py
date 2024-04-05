@@ -122,7 +122,7 @@ def train():
             plot_mean_scores.append(mean_score)
             plot_mean_win_percentage.append(mean_win_percentage)
 
-            plot(plot_win_percentage, plot_mean_win_percentage, START_TIME)
+            plot(plot_scores, plot_mean_scores, START_TIME)
             
 if __name__ == '__main__':
     train()
