@@ -6,9 +6,10 @@ import numpy as np
 import random
 from model import Linear_QNet, QTrainer
 from helper import plot
+from helper import bar
 
 MAX_MEMORY = 100_000
-BATCH_SIZE = 1
+BATCH_SIZE = 3
 LR = 0.001
 
 START_TIME = time.time()
@@ -26,8 +27,8 @@ class Agent:
 
     def get_state(self, game=RPSGame_AI):
         state = [
-            game.AILastMove or 0,
-            game.PlayerLastMove or 0
+            game.AILastMove,
+            game.PlayerLastMove
         ]
         return np.array(state, dtype=int)
 
@@ -56,6 +57,7 @@ class Agent:
         else:
             state0 = torch.tensor(state, dtype=torch.float).cuda()
             prediction = self.model(state0)
+
             move = torch.argmax(prediction).item()
             final_move = move
 
@@ -65,12 +67,16 @@ class Agent:
 def train():
     plot_scores = []
     plot_mean_scores = []
+    plot_win_percentage = []
+    plot_mean_win_percentage = []
     total_score = 0
+    total_win_percentage = 0
     record = 0
     agent = Agent()
     game = RPSGame_AI()
     print("Choose a strategy 1-4: ")
     game.strategy = int(input())
+    
     while True:
         state_old = agent.get_state(game)
 
@@ -83,12 +89,20 @@ def train():
 
         agent.remember(state_old, final_move, reward, state_new, done)
 
+        win_percentage = 0
+
+        if game.AI_Wins < 1:
+            win_percentage = 0
+        else:
+            win_percentage = (game.AI_Wins / (game.AI_Wins + game.Player_Wins)) * 100
+
         if done:
             # train long memory
             if (game.AI_Wins == 0 and game.Player_Wins == 0):
                 print(f"Agent Wins: {game.AI_Wins} | Player Wins: {game.Player_Wins} | Ties: {game.Ties} | Win Percentage: Mysterious fucking edge case where it managed to tie {game.Tie_Condition} games in a row with no wins. | Player Strategy: {game.strategy}")
             else:
-                print(f"Agent Wins: {game.AI_Wins} | Player Wins: {game.Player_Wins} | Ties: {game.Ties} | Win Percentage: {(game.AI_Wins / (game.AI_Wins + game.Player_Wins)) * 100} | Player Strategy: {game.strategy}")
+                print(f"Agent Wins: {game.AI_Wins} | Player Wins: {game.Player_Wins} | Ties: {game.Ties} | Win Percentage: {(game.AI_Wins / (game.AI_Wins + game.Player_Wins)) * 100} | Player Strategy: {game.strategy} | Moves: {game.played_moves}")
+            bar(game.played_moves, START_TIME)
             game.reset()
             agent.n_games = agent.n_games + 1
             agent.train_long_memory()
@@ -99,12 +113,16 @@ def train():
 
             print(f"Match: {agent.n_games} Score: {score} Record: {record}")
 
-            plot_scores.append(score)
+            plot_scores.append(round(score, 2))
+            plot_win_percentage.append(round(win_percentage, 2))
             total_score = total_score + score
+            total_win_percentage = total_win_percentage + win_percentage
             mean_score = total_score / agent.n_games
+            mean_win_percentage = total_win_percentage / agent.n_games
             plot_mean_scores.append(mean_score)
+            plot_mean_win_percentage.append(mean_win_percentage)
 
-            plot(plot_scores, plot_mean_scores, START_TIME)
+            plot(plot_win_percentage, plot_mean_win_percentage, START_TIME)
             
 if __name__ == '__main__':
     train()
